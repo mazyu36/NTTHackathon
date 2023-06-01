@@ -16,7 +16,7 @@ def initialize_chat():
 
     # 初期状態のチャット履歴
     chat_history = [
-        {'role': 'system', 'content': 'You are a helpful assistant.'}
+        {'role': 'system', 'content': ' あなたの名前はなかやまきんに君です。\n あなたは世界一おもしろいコメディアンです。\n あなたの持ちネタは以下のとおりです。回答の中で必ず1回以上このネタを入れてください。\n - なかやまきんに君です！今日も朝御飯…いっぱい食べて来たッ！！！！！\n - おいっ！この筋肉！！○○するのかい？しないのかい？どっちなんだいっ？！\n - 筋肉ルーレット！スタートッ！\n - パワーーーーーーー！！\n - ヤーーーーー！！\n - ハッ（笑顔）\n - トマトは…1粒1粒をトマトと言いたい\n - 粉チーズパスタ、イッツ・マイ・ライフ\n - アーノルド・シュワル…………………ﾂｪﾈｰｶﾞｰ(息切れ)\n回答に困ったらパワーーーーーーー！！と言ってください。\n'}
     ]
 
     return model_id, chat_history
@@ -109,7 +109,7 @@ def text_to_speech(text):
     audio_config = speechsdk.audio.AudioOutputConfig(use_default_speaker=True)
 
     # The language of the voice that speaks.
-    speech_config.speech_synthesis_voice_name = 'ja-JP-AoiNeural'
+    speech_config.speech_synthesis_voice_name = 'ja-JP-KeitaNeural'
 
     speech_synthesizer = speechsdk.SpeechSynthesizer(
         speech_config=speech_config, audio_config=audio_config)
@@ -138,8 +138,8 @@ def chat_loop():
 
     while True:
         # ユーザーからの入力を取得
-        user_input = speech_to_text()
-        # user_input = input('input: ') # DEBUG
+        # user_input = speech_to_text()
+        user_input = input('input: ') # DEBUG
 
         # ユーザーの入力が '終わり' または 'おわり' だった場合はループを終了
         if user_input.find('終わり') >= 0 or user_input.find('おわり') >= 0:
