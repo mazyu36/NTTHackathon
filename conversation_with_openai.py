@@ -9,7 +9,47 @@ openai.api_version = "2023-03-15-preview"
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
 
-def recognize_from_microphone():
+# チャットの初期状態を設定
+def initialize_chat():
+    # モデルのID（ChatGPTのIDを使用）
+    model_id = 'gpt-35-turbo'
+
+    # 初期状態のチャット履歴
+    chat_history = [
+        {'role': 'system', 'content': 'You are a helpful assistant.'}
+    ]
+
+    return model_id, chat_history
+
+# ユーザーからの入力を処理し、モデルに送信して応答を生成する
+
+
+def generate_response(user_input, model_id, chat_history):
+    # チャット履歴にユーザーの入力を追加
+    chat_history.append({'role': 'user', 'content': user_input})
+
+    # print(chat_history)
+
+    # OpenAI APIを使用して応答を生成
+    response = openai.ChatCompletion.create(
+        engine=model_id,
+        messages=chat_history,
+        temperature=0.7,
+        max_tokens=800,
+        top_p=0.95,
+        frequency_penalty=0,
+        presence_penalty=0,
+        stop=None)
+
+    # 応答からモデルの生成結果を抽出
+    model_response = response['choices'][0]['message']['content']
+
+    # チャット履歴にモデルの応答を追加
+    chat_history.append({'role': 'assistant', 'content': model_response})
+    return model_response
+
+
+def speech_to_text():
     # This example requires environment variables named "SPEECH_KEY" and
     # "SPEECH_REGION"
     speech_config = speechsdk.SpeechConfig(
@@ -46,27 +86,7 @@ def recognize_from_microphone():
         return None
 
 
-def get_from_openai(text):
-    response = openai.ChatCompletion.create(engine="gpt-35-turbo",
-                                            messages=[{"role": "system",
-                                                       "content": "You are an AI assistant that helps people find information."},
-                                                      {"role": "user",
-                                                       "content": text},
-                                                      {"role": "assistant",
-                                                       "content": ""}],
-                                            temperature=0.7,
-                                            max_tokens=800,
-                                            top_p=0.95,
-                                            frequency_penalty=0,
-                                            presence_penalty=0,
-                                            stop=None)
-
-    answer_text = response["choices"][0]["message"]["content"]
-    print(answer_text)
-    return answer_text
-
-
-def speech_from_text(text):
+def text_to_speech(text):
     speech_config = speechsdk.SpeechConfig(
         subscription=os.environ.get('SPEECH_KEY'),
         region=os.environ.get('SPEECH_REGION'))
@@ -95,17 +115,26 @@ def speech_from_text(text):
                 print("Did you set the speech resource key and region values?")
 
 
-# 会話の履歴を保持する配列
-messages = []
+# メインの会話ループ
+def chat_loop():
+    # チャットの初期化
+    model_id, chat_history = initialize_chat()
+
+    while True:
+        # ユーザーからの入力を取得
+        user_input = speech_to_text()
+
+        # ユーザーの入力が 'exit' だった場合はループを終了
+        if user_input.lower() == 'exit':
+            break
+
+        # モデルによる応答の生成
+        response = generate_response(user_input, model_id, chat_history)
+
+        print("Assistant:", response)
+        text_to_speech(response)
 
 
-# for文を追加
-for i in range(3):
-    #  音声からテキストを抽出
-    text = recognize_from_microphone()
-
-    #  音声で抽出したテキストをOpenAIにリクエストして結果を取得
-    openai_response = get_from_openai(text)
-
-    # OpenAIから受け取った結果を音声として出す。Speech From Response
-    speech_from_text(openai_response)
+# メインの実行部分
+if __name__ == '__main__':
+    chat_loop()
