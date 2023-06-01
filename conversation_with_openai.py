@@ -44,6 +44,8 @@ def generate_response(user_input, model_id, chat_history):
     # 応答からモデルの生成結果を抽出
     model_response = response['choices'][0]['message']['content']
 
+    # TODO Responseのトークン数の上限超過時の考慮が必要。
+
     # チャット履歴にモデルの応答を追加
     chat_history.append({'role': 'assistant', 'content': model_response})
     return model_response
