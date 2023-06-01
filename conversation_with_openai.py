@@ -25,6 +25,22 @@ def initialize_chat():
 
 
 def generate_response(user_input, model_id, chat_history):
+    # 直近3回分(system:1 + user:3 + assistant:3 = 7)の会話履歴のみを保持する
+    if len(chat_history) > 7:
+        print('Chat History:')
+        print(chat_history)
+        new_chat_history = []
+        new_chat_history.append(chat_history[0])
+        new_chat_history.append(chat_history[-6])
+        new_chat_history.append(chat_history[-5])
+        new_chat_history.append(chat_history[-4])
+        new_chat_history.append(chat_history[-3])
+        new_chat_history.append(chat_history[-2])
+        new_chat_history.append(chat_history[-1])
+        print('New Chat History:')
+        print(new_chat_history)
+        chat_history = new_chat_history
+
     # チャット履歴にユーザーの入力を追加
     chat_history.append({'role': 'user', 'content': user_input})
 
@@ -44,11 +60,9 @@ def generate_response(user_input, model_id, chat_history):
     # 応答からモデルの生成結果を抽出
     model_response = response['choices'][0]['message']['content']
 
-    # TODO Responseのトークン数の上限超過時の考慮が必要。
-
     # チャット履歴にモデルの応答を追加
     chat_history.append({'role': 'assistant', 'content': model_response})
-    return model_response
+    return model_response, chat_history
 
 
 def speech_to_text():
@@ -125,15 +139,17 @@ def chat_loop():
     while True:
         # ユーザーからの入力を取得
         user_input = speech_to_text()
+        # user_input = input('input: ') # DEBUG
 
-        # ユーザーの入力が 'exit' だった場合はループを終了
-        if user_input.lower() == 'exit':
+        # ユーザーの入力が '終わり' または 'おわり' だった場合はループを終了
+        if user_input.find('終わり') >= 0 or user_input.find('おわり') >= 0:
             break
 
         # モデルによる応答の生成
-        response = generate_response(user_input, model_id, chat_history)
+        response, chat_history = generate_response(user_input, model_id, chat_history)
 
         print("Assistant:", response)
+        # 音声出力
         text_to_speech(response)
 
 
