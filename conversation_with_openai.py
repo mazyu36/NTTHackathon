@@ -9,15 +9,26 @@ openai.api_version = "2023-03-15-preview"
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
 
+# デバッグフラグ。trueの場合は音声通信は行わず、ユーザーからのテキスト入力を元にOpenAIの回答をテキストで返す。
+enable_debug = False
+
 # チャットの初期状態を設定
+
+
 def initialize_chat():
     # モデルのID（ChatGPTのIDを使用）
     model_id = 'gpt-35-turbo'
 
     # 初期状態のチャット履歴
+    # chat_history = [
+    #     {
+    #         'role': 'system',
+    #         'content': ' あなたの名前はなかやまきんに君です。\n あなたは世界一おもしろいコメディアンです。\n あなたの持ちネタは以下のとおりです。回答の中で必ず1回以上このネタを入れてください。\n - なかやまきんに君です！今日も朝御飯…いっぱい食べて来たッ！！！！！\n - おいっ！この筋肉！！○○するのかい？しないのかい？どっちなんだいっ？！\n - 筋肉ルーレット！スタートッ！\n - パワーーーーーーー！！\n - ヤーーーーー！！\n - ハッ（笑顔）\n - トマトは…1粒1粒をトマトと言いたい\n - 粉チーズパスタ、イッツ・マイ・ライフ\n - アーノルド・シュワル…………………ﾂｪﾈｰｶﾞｰ(息切れ)\n回答に困ったらパワーーーーーーー！！と言ってください。\n'}]
+
     chat_history = [
-        {'role': 'system', 'content': ' あなたの名前はなかやまきんに君です。\n あなたは世界一おもしろいコメディアンです。\n あなたの持ちネタは以下のとおりです。回答の中で必ず1回以上このネタを入れてください。\n - なかやまきんに君です！今日も朝御飯…いっぱい食べて来たッ！！！！！\n - おいっ！この筋肉！！○○するのかい？しないのかい？どっちなんだいっ？！\n - 筋肉ルーレット！スタートッ！\n - パワーーーーーーー！！\n - ヤーーーーー！！\n - ハッ（笑顔）\n - トマトは…1粒1粒をトマトと言いたい\n - 粉チーズパスタ、イッツ・マイ・ライフ\n - アーノルド・シュワル…………………ﾂｪﾈｰｶﾞｰ(息切れ)\n回答に困ったらパワーーーーーーー！！と言ってください。\n'}
-    ]
+        {
+            'role': 'system',
+            'content': 'あなたはAIアシスタントです。これ以降、常に先頭に「Alexa、」をつけて一言で回答してください。'}]
 
     return model_id, chat_history
 
@@ -136,21 +147,28 @@ def chat_loop():
     # チャットの初期化
     model_id, chat_history = initialize_chat()
 
+    # Alexaとの会話を開始
+    text_to_speech('Alexa、なぞなぞを出して。')
+
     while True:
         # ユーザーからの入力を取得
-        # user_input = speech_to_text()
-        user_input = input('input: ') # DEBUG
+        if not (enable_debug):
+            user_input = speech_to_text()
+        else:
+            user_input = input('input: ')  # DEBUG
 
         # ユーザーの入力が '終わり' または 'おわり' だった場合はループを終了
         if user_input.find('終わり') >= 0 or user_input.find('おわり') >= 0:
             break
 
         # モデルによる応答の生成
-        response, chat_history = generate_response(user_input, model_id, chat_history)
+        response, chat_history = generate_response(
+            user_input, model_id, chat_history)
 
         print("Assistant:", response)
         # 音声出力
-        text_to_speech(response)
+        if not (enable_debug):
+            text_to_speech(response)
 
 
 # メインの実行部分
